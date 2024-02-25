@@ -1,141 +1,77 @@
+import java.util.ArrayList;
 import java.util.Arrays;
 
-public class IntegerArrayList implements IntegerList {
-    private static final int DEFAULT_CAPACITY = 10;
-    private Integer[] array;
-    private int size;
+import static sun.jvm.hotspot.runtime.PerfMemory.capacity;
 
-    public IntegerArrayList() {
-        this.array = new Integer[DEFAULT_CAPACITY];
-        this.size = 0;
-    }
+public class IntegerArrayList extends ArrayList<Integer> {
 
-    public IntegerArrayList(int initialCapacity) {
-        if (initialCapacity <= 0) {
-            throw new IllegalArgumentException("Initial capacity must be positive");
-        }
-        this.array = new Integer[initialCapacity];
-        this.size = 0;
-    }
-
-    private void ensureCapacity(int minCapacity) {
-        int oldCapacity = array.length;
-        if (minCapacity > oldCapacity) {
-            int newCapacity = oldCapacity + (oldCapacity >> 1); // Increase capacity by 50%
-            if (newCapacity < minCapacity)
-                newCapacity = minCapacity;
-            array = Arrays.copyOf(array, newCapacity);
-        }
+    private void grow() {
+        int newCapacity = (int) (size() * 1.5);
+        ensureCapacity(newCapacity);
     }
 
     @Override
-    public Integer add(Integer item) {
-        if (item == null) {
-            throw new IllegalArgumentException("Item cannot be null");
+    public boolean add(Integer item) {
+        if (size() == capacity()) {
+            grow();
         }
-        ensureCapacity(size + 1);
-        array[size] = item;
-        size++;
-        return item;
+        return super.add(item);
     }
 
-    private void quickSort(Integer[] arr, int low, int high) {
-        if (arr == null || arr.length == 0) {
-            return;
-        }
-        if (low >= high) {
-            return;
-        }
-
-        // Выбор опорного элемента
-        int middle = low + (high - low) / 2;
-        Integer pivot = arr[middle];
-
-        // Разделение на подмассивы
-        int i = low, j = high;
-        while (i <= j) {
-            while (arr[i].compareTo(pivot) < 0) {
-                i++;
-            }
-            while (arr[j].compareTo(pivot) > 0) {
-                j--;
-            }
-            if (i <= j) {
-                Integer temp = arr[i];
-                arr[i] = arr[j];
-                arr[j] = temp;
-                i++;
-                j--;
-            }
-        }
-
-        // Рекурсивные вызовы для подмассивов
-        if (low < j) {
-            quickSort(arr, low, j);
-        }
-        if (high > i) {
-            quickSort(arr, i, high);
-        }
-    }
-
-    private boolean binarySearch(Integer[] arr, int left, int right, Integer key) {
-        while (left <= right) {
+    // Рекурсивная сортировка слиянием
+    private void mergeSort(Integer[] arr, int left, int right) {
+        if (left < right) {
             int mid = left + (right - left) / 2;
+            mergeSort(arr, left, mid);
+            mergeSort(arr, mid + 1, right);
+            merge(arr, left, mid, right);
+        }
+    }
 
-            if (arr[mid].equals(key)) {
-                return true;
-            }
+    private void merge(Integer[] arr, int left, int mid, int right) {
+        int n1 = mid - left + 1;
+        int n2 = right - mid;
 
-            if (arr[mid].compareTo(key) < 0) {
-                left = mid + 1;
+        Integer[] L = new Integer[n1];
+        Integer[] R = new Integer[n2];
+
+        for (int i = 0; i < n1; ++i)
+            L[i] = arr[left + i];
+        for (int j = 0; j < n2; ++j)
+            R[j] = arr[mid + 1 + j];
+
+        int i = 0, j = 0;
+        int k = left;
+        while (i < n1 && j < n2) {
+            if (L[i].compareTo(R[j]) <= 0) {
+                arr[k] = L[i];
+                i++;
             } else {
-                right = mid - 1;
+                arr[k] = R[j];
+                j++;
             }
-        }
-        return false;
-    }
-
-    @Override
-    public boolean contains(Integer item) {
-        if (item == null) {
-            throw new IllegalArgumentException("Item cannot be null");
+            k++;
         }
 
-        // Сначала отсортируем массив
-        Integer[] sortedArray = Arrays.copyOf(array, size);
-        quickSort(sortedArray, 0, size - 1);
+        while (i < n1) {
+            arr[k] = L[i];
+            i++;
+            k++;
+        }
 
-        // Затем выполним бинарный поиск
-        return binarySearch(sortedArray, 0, size - 1, item);
+        while (j < n2) {
+            arr[k] = R[j];
+            j++;
+            k++;
+        }
     }
 
-    @Override
-    public int size() {
-        return size;
-    }
 
-    @Override
-    public boolean isEmpty() {
-        return size == 0;
+    public void sort() {
+        Integer[] arr = (Integer[]) toArray();
+        mergeSort(arr, 0, size() - 1);
+        for (int i = 0; i < size(); i++) {
+            set(i, arr[i]);
+        }
     }
-
-    @Override
-    public void clear() {
-        Arrays.fill(array, null);
-        size = 0;
-    }
-
-    @Override
-    public Integer[] toArray() {
-        return Arrays.copyOf(array, size);
-    }
-}
-
-interface IntegerList {
-    Integer add(Integer item);
-    boolean contains(Integer item);
-    int size();
-    boolean isEmpty();
-    void clear();
-    Integer[] toArray();
 }
