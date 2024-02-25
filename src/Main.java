@@ -12,7 +12,7 @@ public class Main {
         System.out.println("List contains 'banana': " + list.contains("banana"));
         System.out.println("Index of 'orange': " + list.indexOf("orange"));
         System.out.println("Last index of 'banana': " + list.lastIndexOf("banana"));
-        System.out.println("Element at index 1: " + list.get(1));
+        System.out.println("Element at indеx 1: " + list.get(1));
         System.out.println("Is list empty: " + list.isEmpty());
         System.out.println("Array representation: " + Arrays.toString(list.toArray()));
 

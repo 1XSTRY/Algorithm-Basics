@@ -70,7 +70,7 @@ public class StringArrayList implements StringList {
     @Override
     public String remove(String item) {
         if (item == null) {
-            throw new IllegalArgumentException("Item cannot be null");
+            throw new IllegalArgumentException("Item can't be null");
         }
         for (int i = 0; i < size; i++) {
             if (item.equals(array[i])) {
